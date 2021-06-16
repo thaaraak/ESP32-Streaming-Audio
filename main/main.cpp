@@ -17,6 +17,7 @@ extern "C" {
 }
 
 
+
 void command_callback( const char* command, char* response )
 {
 	ESP_LOGI( TAG, "In command callback: %s\n", command );
