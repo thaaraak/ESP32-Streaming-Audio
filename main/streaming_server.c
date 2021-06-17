@@ -58,13 +58,6 @@ static esp_err_t stream_handler_old(httpd_req_t *req)
     ESP_LOGE(TAG, "In Stream Handler" );
 	httpd_resp_set_type(req, "audio/x-wav");
 
-    struct httpd_req_aux *ra = req->aux;
-    const char   *hdr_ptr = ra->scratch;         /*!< Request headers are kept in scratch buffer */
-
-    printf( "\n===== HEADERS =====\n");
-    printf( hdr_ptr );
-    printf( "\n===== END-HEADERS =====\n");
-
 	int16_t* data;
 	int total = create_wav( 1, 1000, &data );
 	char* buf = (char*) data;
@@ -98,14 +91,10 @@ static esp_err_t stream_handler(httpd_req_t *req)
     ESP_LOGE(TAG, "In Stream Handler" );
 	httpd_resp_set_type(req, "audio/x-wav");
 
-    struct httpd_req_aux *ra = req->aux;
-    const char   *hdr_ptr = ra->scratch;         /*!< Request headers are kept in scratch buffer */
+    //struct httpd_req_aux *ra = req->aux;
+    //const char   *hdr_ptr = ra->scratch;         /*!< Request headers are kept in scratch buffer */
 
     streaming_wav_t	wav;
-
-    printf( "\n===== HEADERS =====\n");
-    printf( hdr_ptr );
-    printf( "\n===== END-HEADERS =====\n");
 
     ESP_LOGE(TAG, "Sending Header" );
 	streaming_wav_init( &wav, SCRATCH_BUFSIZE );
