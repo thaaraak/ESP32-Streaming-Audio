@@ -182,90 +182,6 @@ static esp_err_t download_get_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static esp_err_t stream_handler_old(httpd_req_t *req)
-{
-    ESP_LOGE(TAG, "In Stream Handler" );
-	httpd_resp_set_type(req, "audio/x-wav");
-
-    struct httpd_req_aux *ra = req->aux;
-    const char   *hdr_ptr = ra->scratch;         /*!< Request headers are kept in scratch buffer */
-
-    printf( "\n===== HEADERS =====\n");
-    printf( hdr_ptr );
-    printf( "\n===== END-HEADERS =====\n");
-
-	int16_t* data;
-	int total = create_wav( 1, 1000, &data );
-	char* buf = (char*) data;
-
-	while ( total > 0 ) {
-
-	    size_t chunksize = total > SCRATCH_BUFSIZE ? SCRATCH_BUFSIZE : total;
-        ESP_LOGE(TAG, "Sending: %d bytes out of %d remaining", chunksize, total);
-
-        if (httpd_resp_send_chunk(req, buf, chunksize) != ESP_OK) {
-            ESP_LOGE(TAG, "File sending failed!");
-            httpd_resp_sendstr_chunk(req, NULL);
-            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to send file");
-            free(data);
-            return ESP_FAIL;
-        }
-
-        total -= chunksize;
-        buf += chunksize;
-	}
-
-    free(data);
-
-    httpd_resp_send_chunk(req, NULL, 0);
-    return ESP_OK;
-}
-
-
-static esp_err_t stream_handler(httpd_req_t *req)
-{
-    ESP_LOGE(TAG, "In Stream Handler" );
-	httpd_resp_set_type(req, "audio/x-wav");
-
-    struct httpd_req_aux *ra = req->aux;
-    const char   *hdr_ptr = ra->scratch;         /*!< Request headers are kept in scratch buffer */
-
-    streaming_wav_t	wav;
-
-    printf( "\n===== HEADERS =====\n");
-    printf( hdr_ptr );
-    printf( "\n===== END-HEADERS =====\n");
-
-    ESP_LOGE(TAG, "Sending Header" );
-	streaming_wav_init( &wav, SCRATCH_BUFSIZE );
-    httpd_resp_send_chunk(req, (const char*)&(wav.hdr), sizeof(wav.hdr));
-
-    size_t chunksize = SCRATCH_BUFSIZE;
-
-    int cnt = 0;
-
-    for ( ;; ) {
-
-    	streaming_wav_play( &wav );
-
-        if (httpd_resp_send_chunk(req, (const char*)wav.buf, chunksize) != ESP_OK) {
-            ESP_LOGE(TAG, "File sending failed!");
-            httpd_resp_sendstr_chunk(req, NULL);
-            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to send file");
-            streaming_wav_destroy( &wav );
-            return ESP_FAIL;
-        }
-
-	}
-
-    streaming_wav_destroy( &wav );
-    httpd_resp_send_chunk(req, NULL, 0);
-
-    return ESP_OK;
-}
-
-
-
 
 static esp_err_t command_handler(httpd_req_t *req)
 {
@@ -353,15 +269,6 @@ esp_err_t start_webserver(const char *base_path, void (*cb)( const char *, char 
         .user_ctx  = "Command Handler"
     };
 
-    httpd_uri_t stream = {
-        .uri       = "/stream",
-        .method    = HTTP_GET,
-        .handler   = stream_handler,
-        /* Let's pass response string in user
-         * context to demonstrate it's usage */
-        .user_ctx  = "Stream Handler"
-    };
-
     /* URI handler for getting uploaded files */
     httpd_uri_t file_download = {
         .uri       = "/*",  // Match all URIs of type /path/to/file
@@ -382,7 +289,6 @@ esp_err_t start_webserver(const char *base_path, void (*cb)( const char *, char 
         // Set URI handlers
         ESP_LOGI(TAG, "Registering URI handlers");
         httpd_register_uri_handler(server, &command);
-        httpd_register_uri_handler(server, &stream);
         httpd_register_uri_handler(server, &file_download);
         ESP_LOGI(TAG, "Completed Registering URI handlers");
         return ESP_OK;
@@ -392,32 +298,7 @@ esp_err_t start_webserver(const char *base_path, void (*cb)( const char *, char 
     return ESP_FAIL;
 }
 
-static void stop_webserver(httpd_handle_t server)
-{
-    // Stop the httpd server
-    httpd_stop(server);
-}
 
-static void disconnect_handler(void* arg, esp_event_base_t event_base, 
-                               int32_t event_id, void* event_data)
-{
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server) {
-        ESP_LOGI(TAG, "Stopping webserver");
-        stop_webserver(*server);
-        *server = NULL;
-    }
-}
-
-static void connect_handler(void* arg, esp_event_base_t event_base, 
-                            int32_t event_id, void* event_data)
-{
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server == NULL) {
-        ESP_LOGI(TAG, "Starting webserver");
-        start_webserver( server_data->base_path, server_data->command_callback );
-    }
-}
 
 
 
