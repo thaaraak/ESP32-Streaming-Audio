@@ -29,8 +29,10 @@ void streaming_wav_play( streaming_wav_t* wav ) {
     	int sample_rate = wav->hdr.fmt.samplerate;
     	float frequency = 700;
 
+    	/*
     	if ( i % 16000 == 0 )
     		printf( "Cnt: %d Frequency: %f\n", i, frequency );
+		*/
 
     	double sin_float = 15000 * sinf( 2 * i * M_PI / ( sample_rate / frequency ) );
 
