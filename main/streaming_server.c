@@ -92,7 +92,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
 	httpd_resp_set_type(req, "audio/x-wav");
 
     //struct httpd_req_aux *ra = req->aux;
-    //const char   *hdr_ptr = ra->scratch;         /*!< Request headers are kept in scratch buffer */
+    //const char   *hdr_ptr = ra->scratch;
 
     streaming_wav_t	wav;
 
