@@ -88,11 +88,13 @@ void audio_process(void)
 
     i2s_stream_cfg_t i2s_cfg_read = I2S_STREAM_CFG_DEFAULT();
     i2s_cfg_read.type = AUDIO_STREAM_READER;
+    i2s_cfg_read.i2s_config.sample_rate = 8000;
     i2s_stream_reader = i2s_stream_init(&i2s_cfg_read);
 
     ESP_LOGI(TAG, "[3.1b] Create i2s stream to write data to codec chip");
 
     i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT();
+    i2s_cfg.i2s_config.sample_rate = 8000;
     i2s_cfg.type = AUDIO_STREAM_WRITER;
     i2s_stream_writer = i2s_stream_init(&i2s_cfg);
 
@@ -113,13 +115,14 @@ void audio_process(void)
 
     ESP_LOGI(TAG, "[3.4] Link it together [codec_chip]-->i2s_stream_reader-->http_audio");
 
-    /*
+
     const char *link_tag[3] = {"i2s_read", "http_audio"};
     audio_pipeline_link(pipeline, &link_tag[0], 2);
-*/
 
+/*
     const char *link_tag[3] = {"i2s_read", "i2s_write"};
     audio_pipeline_link(pipeline, &link_tag[0], 2);
+*/
 
     ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
     audio_event_iface_cfg_t evt_cfg = AUDIO_EVENT_IFACE_DEFAULT_CFG();

@@ -63,34 +63,41 @@ static int _streaming_http_audio_process(audio_element_handle_t self, char *in_b
     return out_len;
 }
 
+int cnt = 0;
 
 static int _streaming_http_audio_write(audio_element_handle_t self, char *buffer, int len, TickType_t ticks_to_wait, void *context)
 {
-     streaming_http_audio_t *sha = (streaming_http_audio_t *)audio_element_getdata(self);
 
-     // If there is no active stream then just simply return len
-     // This effectively ignores the audio block
+    streaming_http_audio_t *sha = (streaming_http_audio_t *)audio_element_getdata(self);
 
-     if ( !sha->active )
-    	 return len;
+    // If there is no active stream then just simply return len
+    // This effectively ignores the audio block
 
-     // Transform incoming buffer of size "len" from stereo 16 bit
-     // to mono 16 bit WAV format
+    if ( !sha->active )
+    	return len;
 
-     int16_t* src = (int16_t*)buffer;
-     int16_t* dest = (int16_t*)sha->buf;
+    /*
+    if ( cnt++ % 100 == 0 )
+    	ESP_LOGI(TAG, "In Audio Write Length: %d", len );
+	*/
 
-     for ( int i = 0 ; i < len ; i += 2 )
+    // Transform incoming buffer of size "len" from stereo 16 bit
+    // to mono 16 bit WAV format
+
+    int16_t* src = (int16_t*)buffer;
+    int16_t* dest = (int16_t*)sha->buf;
+
+    for ( int i = 0 ; i < len/2 ; i += 2 )
      	dest[i/2] = src[i];
 
-     httpd_req_t *req = sha->req;
+    httpd_req_t *req = sha->req;
 
-     if (httpd_resp_send_chunk(req, (const char*)sha->buf, len/2 ) != ESP_OK) {
+    if (httpd_resp_send_chunk(req, (const char*)sha->buf, len/2 ) != ESP_OK) {
          ESP_LOGE(TAG, "Streaming send failed");
          httpd_resp_sendstr_chunk(req, NULL);
          sha->active = false;
          return ESP_FAIL;
-     }
+    }
 
      return len;
 }
@@ -129,8 +136,10 @@ static esp_err_t _stream_handler(httpd_req_t *req)
 	_streaming_wav_header( &wav, sha );
     httpd_resp_send_chunk(req, (const char*)&(wav), sizeof(wav));
 
-    sha->active = true;
+    ESP_LOGE(TAG, "Header Sent" );
+
     sha->req = req;
+    sha->active = true;
 
     // This seems hokey. This function can't return while the stream is active
     // because the socket will be closed (Assumption) so need to keep looping
@@ -189,7 +198,7 @@ audio_element_handle_t streaming_http_audio_init(streaming_http_audio_cfg_t *con
     cfg.close = _streaming_http_audio_close;
     cfg.task_stack = STREAMING_HTTP_AUDIO_TASK_STACK;
 
-    cfg.buffer_len = 1024;
+    cfg.buffer_len = 4096;
 
     if (config) {
         if (config->task_stack) {
@@ -211,6 +220,13 @@ audio_element_handle_t streaming_http_audio_init(streaming_http_audio_cfg_t *con
     sha->sample_rate = config->sample_rate;
 	sha->bits = config->bits;
 	sha->channels = config->channels;
+
+    ESP_LOGE(TAG, "Streaming Audio Config: Size: %d Sample Rate: %d Bits: %d Channels: %d",
+    	    sha->buf_size,
+    	    sha->sample_rate,
+    		sha->bits,
+    		sha->channels
+    		);
 
     audio_element_handle_t el = audio_element_init(&cfg);
     AUDIO_MEM_CHECK(TAG, el, {audio_free(sha); return NULL;});
