@@ -105,6 +105,7 @@ void audio_process(void)
     memcpy( &(sha_cfg.http_cfg), &config, sizeof(httpd_config_t) );
     sha_cfg.http_cfg.server_port = 8080;
     sha_cfg.http_cfg.ctrl_port = 8081;
+    sha_cfg.sample_rate = 8000;
     http_audio = streaming_http_audio_init(&sha_cfg);
 
     ESP_LOGI(TAG, "[3.3] Register all elements to audio pipeline");
