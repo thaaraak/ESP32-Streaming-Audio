@@ -17,14 +17,6 @@
 #define BASE_PATH "/spiffs"
 static const char *TAG = "esp32-streaming-audio";
 
-extern "C" {
-	void app_main();
-	void audio_process();
-	void command_callback( const char* command );
-
-}
-
-
 void command_callback( const char* command, char* response )
 {
 	ESP_LOGI( TAG, "In command callback: %s\n", command );
@@ -76,41 +68,10 @@ void init_webserver(void)
     //start_streaming_server();
 }
 
-void initI2SConfig( i2s_stream_cfg_t& cfg, audio_stream_type_t t )
-{
-	memset( &cfg, 0, sizeof(i2s_stream_cfg_t));
-
-    cfg.type = t;
-
-	cfg.i2s_config.mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX);
-	cfg.i2s_config.sample_rate = 16000;
-	cfg.i2s_config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
-	cfg.i2s_config.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT;
-	cfg.i2s_config.communication_format = I2S_COMM_FORMAT_I2S;
-	cfg.i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM;
-	cfg.i2s_config.dma_buf_count = 3;
-	cfg.i2s_config.dma_buf_len = 300;
-	cfg.i2s_config.use_apll = true;
-	cfg.i2s_config.tx_desc_auto_clear = true;
-	cfg.i2s_config.fixed_mclk = 0;
-
-	cfg.i2s_port = I2S_NUM_0;
-    cfg.use_alc = false;
-    cfg.volume = 0;
-    cfg.out_rb_size = I2S_STREAM_RINGBUFFER_SIZE;
-    cfg.task_stack = I2S_STREAM_TASK_STACK;
-    cfg.task_core = I2S_STREAM_TASK_CORE;
-    cfg.task_prio = I2S_STREAM_TASK_PRIO;
-    cfg.stack_in_ext = false;
-    cfg.multi_out_num = 0;
-    cfg.uninstall_drv = true;
-
-}
-
 void audio_process(void)
 {
     audio_pipeline_handle_t pipeline;
-    audio_element_handle_t i2s_stream_reader, http_audio;
+    audio_element_handle_t i2s_stream_reader, i2s_stream_writer, http_audio;
 
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
@@ -123,25 +84,41 @@ void audio_process(void)
     audio_pipeline_cfg_t pipeline_cfg = DEFAULT_AUDIO_PIPELINE_CONFIG();
     pipeline = audio_pipeline_init(&pipeline_cfg);
 
-    ESP_LOGI(TAG, "[3.1] Create i2s stream to read data from codec chip");
-    i2s_stream_cfg_t i2s_cfg_read;
-    initI2SConfig( i2s_cfg_read, AUDIO_STREAM_READER );
+    ESP_LOGI(TAG, "[3.1a] Create i2s stream to read data from codec chip");
+
+    i2s_stream_cfg_t i2s_cfg_read = I2S_STREAM_CFG_DEFAULT();
+    i2s_cfg_read.type = AUDIO_STREAM_READER;
     i2s_stream_reader = i2s_stream_init(&i2s_cfg_read);
 
+    ESP_LOGI(TAG, "[3.1b] Create i2s stream to write data to codec chip");
+
+    i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT();
+    i2s_cfg.type = AUDIO_STREAM_WRITER;
+    i2s_stream_writer = i2s_stream_init(&i2s_cfg);
+
     ESP_LOGI(TAG, "[3.2] Create HTTP Streamer");
+
     streaming_http_audio_cfg_t sha_cfg = DEFAULT_STREAMING_HTTP_AUDIO_CONFIG();
-    sha_cfg.http_cfg = HTTPD_DEFAULT_CONFIG();
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    memcpy( &(sha_cfg.http_cfg), &config, sizeof(httpd_config_t) );
     sha_cfg.http_cfg.server_port = 8080;
     sha_cfg.http_cfg.ctrl_port = 8081;
     http_audio = streaming_http_audio_init(&sha_cfg);
 
     ESP_LOGI(TAG, "[3.3] Register all elements to audio pipeline");
+
     audio_pipeline_register(pipeline, i2s_stream_reader, "i2s_read");
+    audio_pipeline_register(pipeline, i2s_stream_writer, "i2s_write");
     audio_pipeline_register(pipeline, http_audio, "http_audio");
 
     ESP_LOGI(TAG, "[3.4] Link it together [codec_chip]-->i2s_stream_reader-->http_audio");
 
+    /*
     const char *link_tag[3] = {"i2s_read", "http_audio"};
+    audio_pipeline_link(pipeline, &link_tag[0], 2);
+*/
+
+    const char *link_tag[3] = {"i2s_read", "i2s_write"};
     audio_pipeline_link(pipeline, &link_tag[0], 2);
 
     ESP_LOGI(TAG, "[ 4 ] Set up  event listener");
@@ -179,6 +156,7 @@ void audio_process(void)
     audio_pipeline_terminate(pipeline);
 
     audio_pipeline_unregister(pipeline, i2s_stream_reader);
+    audio_pipeline_unregister(pipeline, i2s_stream_writer);
     audio_pipeline_unregister(pipeline, http_audio);
 
     /* Terminate the pipeline before removing the listener */
@@ -190,6 +168,7 @@ void audio_process(void)
     /* Release all resources */
     audio_pipeline_deinit(pipeline);
     audio_element_deinit(i2s_stream_reader);
+    audio_element_deinit(i2s_stream_writer);
     audio_element_deinit(http_audio);
 }
 
