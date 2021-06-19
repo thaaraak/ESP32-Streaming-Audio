@@ -58,19 +58,19 @@ static esp_err_t init_spiffs(const char *base_path)
 }
 
 
-void init_webserver(void)
-{
-    ESP_ERROR_CHECK(nvs_flash_init());
-    init_spiffs( BASE_PATH );
-    wifi_connect_with_hostname( CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD, CONFIG_ESP_HOSTNAME );
-
-    start_webserver( BASE_PATH, command_callback );
-    start_streaming_server();
-}
-
-
 void app_main2()
 {
-    ESP_LOGI(TAG, "Initializing Web Server");
-	init_webserver();
+    ESP_ERROR_CHECK(nvs_flash_init());
+
+    ESP_LOGI(TAG, "Initializing SPIFFS");
+    init_spiffs( BASE_PATH );
+
+    ESP_LOGI(TAG, "Initializing WiFi");
+    wifi_connect_with_hostname( CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD, CONFIG_ESP_HOSTNAME );
+
+    ESP_LOGI(TAG, "Starting Web Server");
+    start_webserver( BASE_PATH, command_callback );
+
+    ESP_LOGI(TAG, "Starting Streaming Server");
+    start_streaming_server();
 }

@@ -63,9 +63,7 @@ void init_webserver(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     init_spiffs( BASE_PATH );
     wifi_connect_with_hostname( CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD, CONFIG_ESP_HOSTNAME );
-
     start_webserver( BASE_PATH, command_callback );
-    //start_streaming_server();
 }
 
 void audio_process(void)
