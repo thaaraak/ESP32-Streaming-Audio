@@ -17,7 +17,7 @@
 #include "wav_header.h"
 #include "streaming_wav.h"
 
-void streaming_wav_play( streaming_wav_t* wav ) {
+void streaming_wav_play( streaming_wav_t* wav, float frequency ) {
 
     for( int j = 0 ; j < wav->buf_size ; j++ )
     {
@@ -27,14 +27,23 @@ void streaming_wav_play( streaming_wav_t* wav ) {
     		wav->cnt = 0;
 
     	int sample_rate = wav->hdr.fmt.samplerate;
-    	float frequency = 700;
 
     	/*
     	if ( i % 16000 == 0 )
     		printf( "Cnt: %d Frequency: %f\n", i, frequency );
 		*/
 
-    	double sin_float = 15000 * sinf( 2 * i * M_PI / ( sample_rate / frequency ) );
+    	//double sin_float = 15000 * sinf( 2 * i * M_PI / ( sample_rate / frequency ) );
+
+    	double sin_float = 15000 * (
+        		sinf( 2 * i * M_PI / ( sample_rate / frequency ) ) +
+				sinf( 2 * i * M_PI / ( sample_rate / ( 3 * frequency ) ) ) / 3 +
+        		sinf( 2 * i * M_PI / ( sample_rate / ( 5 * frequency ) ) ) / 5 +
+        		sinf( 2 * i * M_PI / ( sample_rate / ( 7 * frequency ) ) ) / 7 +
+        		sinf( 2 * i * M_PI / ( sample_rate / ( 9 * frequency ) ) ) / 9 +
+        		sinf( 2 * i * M_PI / ( sample_rate / ( 11 * frequency ) ) ) / 11 +
+        		sinf( 2 * i * M_PI / ( sample_rate / ( 13 * frequency ) ) ) / 13
+				);
 
         int16_t lval = sin_float;
         int16_t rval = sin_float;
