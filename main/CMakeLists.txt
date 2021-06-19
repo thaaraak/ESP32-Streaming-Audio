@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "wifi.c" "webserver.c" "wav_create.c" "streaming_wav.c" "streaming_server.c"
+idf_component_register(SRCS "main.c" "main_simple.c" "wifi.c" "webserver.c" "wav_create.c" "streaming_wav.c" "streaming_server.c"
 							"streaming_http_audio.c"
                     INCLUDE_DIRS ".")
 
