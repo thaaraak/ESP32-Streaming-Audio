@@ -175,7 +175,8 @@ static esp_err_t _stream_handler(httpd_req_t *req)
 
 // The ESP-IDF web server is single threaded so we need to create
 // a dedicated separate web server that just serves up the streaming audio
-// The port is configurable
+// The port is configurable. This single-threadedness means only one streaming
+// connection is available at any point in time.
 
 esp_err_t _start_streaming_server( audio_element_handle_t el, streaming_http_audio_cfg_t *config )
 {
