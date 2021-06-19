@@ -65,6 +65,19 @@ static int _streaming_http_audio_process(audio_element_handle_t self, char *in_b
 
 int cnt = 0;
 
+// This function is invoked every time the incoming audio buffer is full
+// The function then checks to see if there is an active audio stream and
+// if so writes the incoming buffer out to the web client. A http_resp_send_chunk
+// error usually means that the browser has closed the audio connection. If that
+// happens just reset the "active" flag. Should probably have some mutexes protecting
+// active and req data elements of sha... Note this function is hard coded to 16 bit
+// audio although the sample rate can change. It also assumes a mono output although
+// stereo support can be achieved by changing this loop:
+//
+//     for ( int i = 0 ; i < len/2 ; i += 2 )
+//			dest[i/2] = src[i];
+
+
 static int _streaming_http_audio_write(audio_element_handle_t self, char *buffer, int len, TickType_t ticks_to_wait, void *context)
 {
 
@@ -126,6 +139,11 @@ void _streaming_wav_header( wav_header_t* w, streaming_http_audio_t* sha )
 	w->data.chunk_size = len;
 }
 
+// This function will be invoked when the "play" button is pressed in the
+// browser audio control. This function emits the wav header (with the endless length)
+// sets the "active" flag to true and puts the http request pointer into sha->req
+// The write function will then use this to write the incoming audio back to
+// the web client.
 
 static esp_err_t _stream_handler(httpd_req_t *req)
 {
@@ -155,7 +173,9 @@ static esp_err_t _stream_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-
+// The ESP-IDF web server is single threaded so we need to create
+// a dedicated separate web server that just serves up the streaming audio
+// The port is configurable
 
 esp_err_t _start_streaming_server( audio_element_handle_t el, streaming_http_audio_cfg_t *config )
 {
