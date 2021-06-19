@@ -236,7 +236,8 @@ audio_element_handle_t streaming_http_audio_init(streaming_http_audio_cfg_t *con
     cfg.tag = "sha";
     cfg.write = _streaming_http_audio_write;
 
-    // Only need half the buffer size on output as it is mono
+    // Only need half the buffer size on output as it is mono. If a stereo output is
+    // required then remove the "/2" (and see the write function above
     sha->buf_size = cfg.buffer_len/2;
     sha->buf = audio_malloc( sha->buf_size );
     sha->active = false;
