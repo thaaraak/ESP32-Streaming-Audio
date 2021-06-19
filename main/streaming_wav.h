@@ -22,7 +22,7 @@ typedef struct {
 } streaming_wav_t;
 
 void streaming_wav_init( streaming_wav_t* wav, int buffer_size );
-void streaming_wav_play( streaming_wav_t* wav );
+void streaming_wav_play( streaming_wav_t* wav, float frequency );
 void streaming_wav_destroy( streaming_wav_t* wav );
 
 #endif /* MAIN_STREAMING_WAV_H_ */

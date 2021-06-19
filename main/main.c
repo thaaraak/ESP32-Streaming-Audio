@@ -180,7 +180,7 @@ void audio_process(void)
     audio_element_deinit(http_audio);
 }
 
-void app_main()
+void app_main2()
 {
 	init_webserver();
 	audio_process();

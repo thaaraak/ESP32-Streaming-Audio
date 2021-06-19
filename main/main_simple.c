@@ -58,7 +58,7 @@ static esp_err_t init_spiffs(const char *base_path)
 }
 
 
-void app_main2()
+void app_main()
 {
     ESP_ERROR_CHECK(nvs_flash_init());
 
