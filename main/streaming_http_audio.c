@@ -104,6 +104,9 @@ static int _streaming_http_audio_write(audio_element_handle_t self, char *buffer
 
 void _streaming_wav_header( wav_header_t* w, streaming_http_audio_t* sha )
 {
+	// Simple hack here for an endless stream is to set the len to maximum value.
+	// Both Chrome and Brave seem to have no problems with this.
+
 	int len = 0xFFFFFFFF;
 
 	w->riff.chunk_id = 0X46464952;			// "RIFF"
