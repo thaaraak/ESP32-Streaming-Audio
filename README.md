@@ -11,7 +11,7 @@ The application consists of
 The html file "index3.html" contains the audio control which connects to the streaming web server
 
 There are two "main" files
-* main.c - which is the full I2S -> Streaming HTTP Audio pipeline
+* main.c - which is the full I2S -> Streaming HTTP Audio pipeline. This also contains a web server which runs on port 80. To access go to (http://esp32-streaming/index3.html)
 * main_simple.c - which is a simple streaming test using just the web server
 
 SDKConfig needs to be edited to set the wifi SSID and password at:
