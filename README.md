@@ -15,6 +15,6 @@ There are two "main" files
 * main_simple.c - which is a simple streaming test using just the web server
 
 SDKConfig needs to be edited to set the wifi SSID and password at:
-`CONFIG_ESP_WIFI_SSID="xx"
-CONFIG_ESP_WIFI_PASSWORD="xx"
-CONFIG_ESP_HOSTNAME="esp32-streaming"`
+`CONFIG_ESP_WIFI_SSID="xx"`
+`CONFIG_ESP_WIFI_PASSWORD="xx"`
+`CONFIG_ESP_HOSTNAME="esp32-streaming"`
