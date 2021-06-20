@@ -75,6 +75,8 @@ static esp_err_t stream_handler_old(httpd_req_t *req)
             return ESP_FAIL;
         }
 
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+
         total -= chunksize;
         buf += chunksize;
 	}
@@ -108,6 +110,9 @@ static esp_err_t stream_handler(httpd_req_t *req)
     for ( ;; ) {
 
     	streaming_wav_play( &wav, frequency );
+
+    	if ( cnt++ % 5 == 0 )
+    		frequency += 10;
 
         if (httpd_resp_send_chunk(req, (const char*)wav.buf, chunksize) != ESP_OK) {
             ESP_LOGE(TAG, "File sending failed!");

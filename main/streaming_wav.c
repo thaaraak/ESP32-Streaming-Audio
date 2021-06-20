@@ -33,17 +33,15 @@ void streaming_wav_play( streaming_wav_t* wav, float frequency ) {
     		printf( "Cnt: %d Frequency: %f\n", i, frequency );
 		*/
 
-    	//double sin_float = 15000 * sinf( 2 * i * M_PI / ( sample_rate / frequency ) );
+    	double sin_float = 15000 * sinf( 2 * i * M_PI / ( sample_rate / frequency ) );
 
+/*
     	double sin_float = 15000 * (
         		sinf( 2 * i * M_PI / ( sample_rate / frequency ) ) +
 				sinf( 2 * i * M_PI / ( sample_rate / ( 3 * frequency ) ) ) / 3 +
-        		sinf( 2 * i * M_PI / ( sample_rate / ( 5 * frequency ) ) ) / 5 +
-        		sinf( 2 * i * M_PI / ( sample_rate / ( 7 * frequency ) ) ) / 7 +
-        		sinf( 2 * i * M_PI / ( sample_rate / ( 9 * frequency ) ) ) / 9 +
-        		sinf( 2 * i * M_PI / ( sample_rate / ( 11 * frequency ) ) ) / 11 +
-        		sinf( 2 * i * M_PI / ( sample_rate / ( 13 * frequency ) ) ) / 13
+        		sinf( 2 * i * M_PI / ( sample_rate / ( 5 * frequency ) ) ) / 5
 				);
+*/
 
         int16_t lval = sin_float;
         int16_t rval = sin_float;
@@ -102,7 +100,7 @@ void streaming_wav_init( streaming_wav_t* wav, int buffer_size ) {
 
 	int num_channels = 1;
 	int bits_per_sample = 16;
-	int sample_rate = 8000;
+	int sample_rate = 16000;
 
 	wav->cnt = 0;
 
