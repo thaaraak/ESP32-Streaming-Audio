@@ -103,16 +103,13 @@ static esp_err_t stream_handler(httpd_req_t *req)
     httpd_resp_send_chunk(req, (const char*)&(wav.hdr), sizeof(wav.hdr));
 
     size_t chunksize = SCRATCH_BUFSIZE;
-    float frequency = 700;
+    float frequency = 600;
 
     int cnt = 0;
 
     for ( ;; ) {
 
     	streaming_wav_play( &wav, frequency );
-
-    	if ( cnt++ % 5 == 0 )
-    		frequency += 10;
 
         if (httpd_resp_send_chunk(req, (const char*)wav.buf, chunksize) != ESP_OK) {
             ESP_LOGE(TAG, "File sending failed!");

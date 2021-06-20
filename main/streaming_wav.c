@@ -17,16 +17,33 @@
 #include "wav_header.h"
 #include "streaming_wav.h"
 
+void streaming_wav_silent( streaming_wav_t* wav ) {
+
+	wav->cnt = 0;
+
+	for( int j = 0 ; j < wav->buf_size ; j++ )
+    {
+        if ( wav->hdr.fmt.num_of_channels == 2 ) {
+        	wav->buf[j*2] = 0;
+        	wav->buf[j*2+1] = 0;
+        } else {
+        	wav->buf[j] = 0;
+        }
+    }
+}
+
+
 void streaming_wav_play( streaming_wav_t* wav, float frequency ) {
+
+	int sample_rate = wav->hdr.fmt.samplerate;
+	int loop = sample_rate / frequency * 1000;
 
     for( int j = 0 ; j < wav->buf_size ; j++ )
     {
 
     	int i = wav->cnt++;
-    	if ( wav->cnt > 64000 )
+    	if ( wav->cnt > loop )
     		wav->cnt = 0;
-
-    	int sample_rate = wav->hdr.fmt.samplerate;
 
     	/*
     	if ( i % 16000 == 0 )
@@ -100,7 +117,7 @@ void streaming_wav_init( streaming_wav_t* wav, int buffer_size ) {
 
 	int num_channels = 1;
 	int bits_per_sample = 16;
-	int sample_rate = 16000;
+	int sample_rate = 8000;
 
 	wav->cnt = 0;
 
