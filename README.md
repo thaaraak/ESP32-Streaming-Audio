@@ -1,12 +1,20 @@
-ESP-IDF template app
-====================
+ESP32-Streaming-Audio
+=====================
 
-This is a template application to be used with [Espressif IoT Development Framework](https://github.com/espressif/esp-idf).
+This application uses the [Espressif IoT Development Framework](https://github.com/espressif/esp-idf) and the [Espressif Audio Development Framework](https://github.com/espressif/esp-adf) to create an outbound streaming http audio source.
 
-Please check [ESP-IDF docs](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for getting started instructions.
+The application consists of
+* A web server on port 80 which streams the content held in the "webserver_files" project directory
+* A new ESP-ADF audio pipeline element "streaming_http_audio.c" which listens to the I2S stream and contains
+* A web server on port 8080 which is used to stream the audio
 
-*Code in this repository is in the Public Domain (or CC0 licensed, at your option.)
-Unless required by applicable law or agreed to in writing, this
-software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied.*
-# ESP32-Streaming-Audio
+The html file "index3.html" contains the audio control which connects to the streaming web server
+
+There are two "main" files
+* main.c - which is the full I2S -> Streaming HTTP Audio pipeline
+* main_simple.c - which is a simple streaming test using just the web server
+
+SDKConfig needs to be edited to set the wifi SSID and password at:
+CONFIG_ESP_WIFI_SSID="xx"
+CONFIG_ESP_WIFI_PASSWORD="xx"
+CONFIG_ESP_HOSTNAME="esp32-streaming"
