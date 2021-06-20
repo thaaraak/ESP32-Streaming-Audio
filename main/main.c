@@ -17,6 +17,8 @@
 #define BASE_PATH "/spiffs"
 static const char *TAG = "esp32-streaming-audio";
 
+#define STATUS_LED	2
+
 void command_callback( const char* command, char* response )
 {
 	ESP_LOGI( TAG, "In command callback: %s\n", command );
@@ -57,6 +59,18 @@ static esp_err_t init_spiffs(const char *base_path)
     return ESP_OK;
 }
 
+void blink( int cnt, gpio_num_t gpio )
+{
+    gpio_pad_select_gpio(gpio);
+    gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
+
+    for ( int i = 0 ; i < cnt ; i++ ) {
+		gpio_set_level(gpio, 1);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		gpio_set_level(gpio, 0);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
 
 void init_webserver(void)
 {
@@ -67,6 +81,8 @@ void init_webserver(void)
 
     ESP_LOGI(TAG, "Initializing WiFi");
     wifi_connect_with_hostname( CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD, CONFIG_ESP_HOSTNAME );
+
+    blink(3, STATUS_LED);
 
     ESP_LOGI(TAG, "Starting Web Server");
     start_webserver( BASE_PATH, command_callback );
@@ -92,13 +108,13 @@ void audio_process(void)
 
     i2s_stream_cfg_t i2s_cfg_read = I2S_STREAM_CFG_DEFAULT();
     i2s_cfg_read.type = AUDIO_STREAM_READER;
-    i2s_cfg_read.i2s_config.sample_rate = 8000;
+    i2s_cfg_read.i2s_config.sample_rate = 16000;
     i2s_stream_reader = i2s_stream_init(&i2s_cfg_read);
 
     ESP_LOGI(TAG, "[3.1b] Create i2s stream to write data to codec chip");
 
     i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT();
-    i2s_cfg.i2s_config.sample_rate = 8000;
+    i2s_cfg.i2s_config.sample_rate = 16000;
     i2s_cfg.type = AUDIO_STREAM_WRITER;
     i2s_stream_writer = i2s_stream_init(&i2s_cfg);
 
@@ -109,7 +125,7 @@ void audio_process(void)
     memcpy( &(sha_cfg.http_cfg), &config, sizeof(httpd_config_t) );
     sha_cfg.http_cfg.server_port = 8080;
     sha_cfg.http_cfg.ctrl_port = 8081;
-    sha_cfg.sample_rate = 8000;
+    sha_cfg.sample_rate = 16000;
     http_audio = streaming_http_audio_init(&sha_cfg);
 
     ESP_LOGI(TAG, "[3.3] Register all elements to audio pipeline");
@@ -180,7 +196,7 @@ void audio_process(void)
     audio_element_deinit(http_audio);
 }
 
-void app_main2()
+void app_main()
 {
 	init_webserver();
 	audio_process();

@@ -109,7 +109,7 @@ static int _streaming_http_audio_write(audio_element_handle_t self, char *buffer
          ESP_LOGE(TAG, "Streaming send failed");
          httpd_resp_sendstr_chunk(req, NULL);
          sha->active = false;
-         return ESP_FAIL;
+         return len;
     }
 
      return len;
